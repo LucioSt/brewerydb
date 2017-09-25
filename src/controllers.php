@@ -6,19 +6,14 @@ use Silex\Api\ControllerProviderInterface;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
-use Silex\Provider\CsrfServiceProvider;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Silex\CsrfTokenServiceProvider;
-
 use Brewerydb\Pintlabs;
-
 
 
 class ControllerProvider implements ControllerProviderInterface
 {
+
     private $app;
 
     public function connect(Application $app)
@@ -35,10 +30,6 @@ class ControllerProvider implements ControllerProviderInterface
             ->post('/search', [$this, 'search'])
             ->bind('search');
 
-        $app->get('/foo/{name}', [$this, 'teste'])
-            ->bind('teste');
-
-
         return $controllers;
     }
 
@@ -46,7 +37,17 @@ class ControllerProvider implements ControllerProviderInterface
     public function homepage(Application $app)
     {
 
+        // Generate CSRF Token
         $csrf_token = $app['csrf.token_manager']->getToken('token_id');
+
+
+
+        // CHAMAR RANDOM GENERATE
+
+
+
+
+
 
         return $app['twig']->render('index.html.twig', [
             'csrf_token' => $csrf_token,
@@ -66,73 +67,146 @@ class ControllerProvider implements ControllerProviderInterface
         // Get Json sent by Ajax
         $search_text = $request->request->get('data')['search_text'];
         $_csrf_token = $request->request->get('data')['_csrf_token'];
+        $search_type = $request->request->get('data')['search_type'];
+
         $page        = $request->query->get('p');
 
         $teste = $app['csrf.token_manager']->isTokenValid(new CsrfToken('token_id', $_csrf_token));  // Check csrf Token
 
-        $breweryService = new Pintlabs\Pintlabs_Service_Brewerydb('088f6bdfeec1fb150ca23a68be733e2c');
-        $param = array();
-        $param['abv']  = '0,100';  // Set abv parameter for search between from 0% to 100% of  alcohol by volume of the beer
-        $param['p']    = $page;
-
-        if (!empty($search_text)){
-            $param['name'] = '*'.$search_text.'*';
-        }
-
-        try {
-            $results = $breweryService->request('beers', $param, 'GET'); // where $params is a keyed array of parameters to send with the API call.
-        } catch (Exception $e) {
-            $results = array('error' => $e->getMessage());
-        }
-
         $body = array();
+        $data['numberOfPages'] = 0;
+        $data['totalResults']  = 0;
+        $data['currentPage']   = 1;
 
-        foreach ($results['data'] as $result ) {
+        // Text search validation
+        if (Validation::text_validation($search_text)) {
 
-            if (!empty($result['description'])) {
+            // Request Brewery API
+            $results = $this->requestBreweryDbAPI($search_type, $search_text, $page);
 
-                // test if there is image
-                if (!empty($result['labels']['medium'])) {
-                    $img = $result['labels']['medium'];
-                } else {
-                    $img = 'http://placehold.it/48x48/FFFFFF/AAAAAA.png&text=None'; // None image
-                }
+            $body = $this->prepareBodyresponse($results);
 
-               $body[] = [
-                   'name' => $result['name'],
-                   'description' => $result['description'],
-                   'image' => $img
-                ];
+            // Only loads numberOfPages, totalResults, currentPage if any record have been found
+            if (isset($results['data'])) {
+                $data['numberOfPages'] = $results['numberOfPages'];
+                $data['totalResults']  = $results['totalResults'];
+                $data['currentPage']   = $results['currentPage'];
             }
 
+        } else {
+            $body[] = [
+                'name' => 'The searched word is not accepted.. It should only contain letters, numbers, hyphens and spaces.',
+                'description' => '',
+                'image' => ''
+            ];
+
         }
 
-        $data['currentPage']   = $results['currentPage'];
-        $data['numberOfPages'] = $results['numberOfPages'];
-        $data['totalResults']  = $results['totalResults'];
-        $data['data']          = $body;
+        $data['data'] = $body;
 
        if ($body) {
             return $app->json($data, 200, array('Content-Type' => 'application/json'));
+
         } else {
             return new Response('failure', 200);
+
         }
 
     }
 
     /**
-     * @param Application $app
-     * @param $name
-     * @return mixed
+     * @param $search_type
+     * @return array
      */
 
-    public function teste(Application $app, $name)
+    public function requestBreweryDbAPI($search_type, $search_text, $page)
     {
-        return $app['twig']->render('teste.html.twig', array(
-            'name' => $name,
-        ));
+
+        $breweryService = new Pintlabs\Pintlabs_Service_Brewerydb('088f6bdfeec1fb150ca23a68be733e2c');
+        $param          = array();
+        $param['p']     = $page;    // Set page to search
+
+        // If search is empty does search on entire base
+        if (!empty($search_text)) {
+            $param['name'] = '*' . $search_text . '*';
+
+        }
+
+        if ($search_type == 'option1'){
+            $search = 'beers';
+
+            // If search by beear Set abv parameter for search between from 0% to 100% of alcohol by volume of the beer
+            $param['abv']  = '0,100';
+
+        } else
+        {
+            $search = 'breweries';
+        }
+
+        try {
+            $results = $breweryService->request($search, $param, 'GET');
+
+        } catch (Exception $e) {
+            $results = array('error' => $e->getMessage());
+
+        }
+
+        return $results;
+
     }
 
+    /**
+     * @param $results
+     * @return array
+     */
+
+    public function prepareBodyresponse($results)
+    {
+        $body = array();
+
+        if (isset($results['data'])) {
+
+            foreach ($results['data'] as $result) {
+
+                if (!empty($result['description'])) {
+
+                    // test if there is image
+                    if (!empty($result['labels']['medium'])) {
+
+                        $img = $result['labels']['medium'];
+
+                    } elseif (!empty($result['images']['large'])) {
+
+                        $img = $result['images']['icon'];
+
+                    } else {
+
+                        $img = 'http://placehold.it/48x48/FFFFFF/AAAAAA.png&text=None'; // None image
+
+                    }
+
+                    $body[] = [
+                        'name' => $result['name'],
+                        'description' => $result['description'],
+                        'image' => $img
+                    ];
+
+                }
+
+            }
+
+        } else {
+            $body[] = [
+                'name' => 'No records found in the search. ',
+                'description' => '',
+                'image' => ''
+            ];
+
+        }
+
+        return $body;
+
+    }
 
     /**
      * @summary Handling Route Errors
@@ -144,16 +218,23 @@ class ControllerProvider implements ControllerProviderInterface
 
     public function error(\Exception $e, Request $request, $code)
     {
+
         if ($this->app['debug']) {
             return;
+
         }
+
         switch ($code) {
             case 404:
                 $message = 'The requested page could not be found.';
                 break;
             default:
                 $message = 'We are sorry, but something went terribly wrong.';
+
         }
+
         return new Response($message, $code);
+
     }
+
 }

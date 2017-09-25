@@ -6,21 +6,38 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <h1 class="display-6">Brewwery Search</h1>
+            <h2 class="display-6">BreweryDB Search</h2>
 
 
-            <p>Search by beer name</p>
-            <!--
-            <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
-          -->
+            <!--  <h7>Search by beer name</h7>  -->
 
-        <!--    <form class="form-inline my-2 my-lg-0" action="/search" method="post">   -->
-                <input class="form-control mr-sm-2" type="text" placeholder="Search" id="search" name="search_text" aria-label="Search">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit"  onclick="updateDataSearch()">Search</button>
-                <input type="hidden" id="token" name="_csrf_token" value="{{csrf_token}}">
-         <!--   </form>   -->
+             <div class="row">
+                <div class="col-md-12">
+                    <div class="row no-gutters">
+                        <div class="col-12 col-sm-6 col-md-5" style="margin-right:15px;">
+                            <input class="form-control mr-sm-2 col-xs-4" type="text" placeholder="Search" id="search" name="search_text" aria-label="Search">
+                        </div>
 
+                        <div class="col-6 col-md-1" >
+                            <button class="btn btn-outline-success my-2 my-sm-0" type="submit"  onclick="updateDataSearch()">Search</button>
+                            <input type="hidden" id="token" name="_csrf_token" value="{{csrf_token}}">
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Check bottons -->
+
+            <div class="form-check" style="padding-top:15px;">
+                <label class="form-check-label">
+                    <input class="form-check-input" type="radio" name="SearchType" id="Beer" value="option1" checked>
+                    Beer &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    <input class="form-check-input" type="radio" name="SearchType" id="Brewery" value="option2">
+                    Brewery
+                </label>
+            </div>
+
+            <hr>
 
         </div>
     </div>
@@ -28,28 +45,11 @@
     <div class="container" id="listing" >
 
         <!-- Example row of columns -->
+
         <div class="row">
             <div class="col-md-12">
-                <div class="row no-gutters">
-                    <div class="col-6 col-md-1" style="margin-right:15px;">
-                        <img class="thumbnail" style="width:74px; height:74px;" width="64" height="64" src="https://s3.amazonaws.com/brewerydbapi/brewery/XYOIqp/upload_DjaYrv-icon.png">
-                    </div>
-                    <div class="col-12 col-sm-6 col-md-10">
-                        <h5>
-                            14th Star Brewing
-                        </h5>
-                        <p>
-                            History books tell us that local Vermonter and beer enthusiast Ethan Allen was a leader inthe effort…
-                        </p>
-                    </div>
-                </div>
+                <p>Search for beer's name or brewery</p>
             </div>
-        </div>
-
-        <hr>
-
-        <!-- Pagination DIV -->
-        <div class="container" id="pagination" >
         </div>
 
 
