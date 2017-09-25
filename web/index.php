@@ -16,6 +16,9 @@ if (php_sapi_name() === 'cli-server' && is_file($filename)) {
 
 require_once __DIR__.'/../vendor/autoload.php';
 require      __DIR__.'/../src/controllers.php';
+require      __DIR__.'/../src/Pintlabs/Service/Brewerydb/Exception.php';
+require      __DIR__.'/../src/Pintlabs/Service/Brewerydb.php';
+
 
 $app = require __DIR__.'/../src/app.php';
 require __DIR__.'/../config/prod.php';

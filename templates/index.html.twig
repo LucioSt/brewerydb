@@ -1,0 +1,62 @@
+{% extends "layout.html.twig" %}
+
+{% block content %}
+
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-6">Brewwery Search</h1>
+
+
+            <p>Search by beer name</p>
+            <!--
+            <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p>
+          -->
+
+        <!--    <form class="form-inline my-2 my-lg-0" action="/search" method="post">   -->
+                <input class="form-control mr-sm-2" type="text" placeholder="Search" id="search" name="search_text" aria-label="Search">
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit"  onclick="updateDataSearch()">Search</button>
+                <input type="hidden" id="token" name="_csrf_token" value="{{csrf_token}}">
+         <!--   </form>   -->
+
+
+
+        </div>
+    </div>
+
+    <div class="container" id="listing" >
+
+        <!-- Example row of columns -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="row no-gutters">
+                    <div class="col-6 col-md-1" style="margin-right:15px;">
+                        <img class="thumbnail" style="width:74px; height:74px;" width="64" height="64" src="https://s3.amazonaws.com/brewerydbapi/brewery/XYOIqp/upload_DjaYrv-icon.png">
+                    </div>
+                    <div class="col-12 col-sm-6 col-md-10">
+                        <h5>
+                            14th Star Brewing
+                        </h5>
+                        <p>
+                            History books tell us that local Vermonter and beer enthusiast Ethan Allen was a leader inthe effort…
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- Pagination DIV -->
+        <div class="container" id="pagination" >
+        </div>
+
+
+        <footer>
+            <!--  <p>&copy; Brewwery Search 2017</p> -->
+        </footer>
+    </div> <!-- /container -->
+
+
+{% endblock %}
