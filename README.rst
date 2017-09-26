@@ -10,6 +10,7 @@ Simple application that uses the Brewerydb API services to search Beers and Brew
 - Pintlabs Brewerydb API
 - Twig
 - Ajax
+- JQuery
 
 ### Installation & Usage
 

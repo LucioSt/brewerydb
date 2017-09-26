@@ -13,7 +13,7 @@
 
 namespace Brewerydb;
 
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 $filename = __DIR__.preg_replace('#(\?.*)$#', '', $_SERVER['REQUEST_URI']);
 
