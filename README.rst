@@ -3,7 +3,7 @@ Brewerydb API Search
 
 Simple application that uses the Brewerydb API services to search Beers and Breweries.
 
-### Were used:
+### Used:
 
 - PHP 7
 - Silex 2 - Micro-framework based on the Symfony 
