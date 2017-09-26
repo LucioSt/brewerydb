@@ -32,3 +32,12 @@ Simple application that uses the Brewerydb API services to search Beers and Brew
 
 * Then, browse to http://localhost:8080
 
+
+
+Improvements to the next version:
+-----------------------------------
+
+* Redis Cache
+* Use React on the front-end
+* Autocomplete in search
+
