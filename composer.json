@@ -22,7 +22,6 @@
         "symfony/translation": "~2.8|^3.0",
         "symfony/twig-bridge": "~2.8|^3.0",
         "symfony/validator": "~2.8|^3.0",
-        "symfony/yaml": "2.1.*@dev",
         "symfony/security-csrf": "^3.3"
     },
     "autoload": {
