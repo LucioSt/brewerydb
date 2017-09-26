@@ -1,20 +1,22 @@
-Brewerydb
-==============
+Brewerydb API Search
+====================
 
+Simple application that uses the Brewerydb API services to search Beers and Breweries.
 
-Browsing the Demo Application
------------------------------
+### Were used:
 
-Congratulations! You're now ready to use Silex.
+- PHP 7
+- Silex 2
+- Pintlabs Brewerydb API
+- Twig
+- Ajax
 
-To see a real-live Silex page in action, start the PHP built-in web server with
-command:
+### Installation & Usage
 
-.. code-block:: console
-
-    $ cd path/to/install
-    $ COMPOSER_PROCESS_TIMEOUT=0 composer run
-
-Then, browse to http://localhost:8888/index_dev.php/
-
+* $ cd path/to/install
+* Follow the instructions from the link to install the composer in the app folder. Https://getcomposer.org/download/
+* run ``` php composer.phar install ```
+* Start the PHP built-in web server with command:
+* run ``` php -S localhost:8080 -t web web/index.php ```
+* Then, browse to http://localhost:8888/index_dev.php/
 
