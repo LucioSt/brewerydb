@@ -1,26 +1,28 @@
 <?php
 
+namespace Brewerydb;
+
+$loader = require __DIR__ . '/../vendor/autoload.php';
+require __DIR__.'/../src/Brewerydb/Validation.php';
+
 use Silex\WebTestCase;
+
 
 class controllersTest extends WebTestCase
 {
-    public function testGetHomepage()
+    public function testValidation()
     {
-        $client = $this->createClient();
-        $client->followRedirects(true);
-        $crawler = $client->request('GET', '/');
 
-        $this->assertTrue($client->getResponse()->isOk());
-        $this->assertContains('Welcome', $crawler->filter('body')->text());
+        $this->assertEquals(true, Validation::textValidation("ASD-asaas 123 -"));
+        $this->assertEquals(false, Validation::textValidation("(#)"));
+        $this->assertEquals(false, Validation::textValidation("<br>"));
+
     }
 
     public function createApplication()
     {
-        $app = require __DIR__.'/../src/app.php';
-        require __DIR__.'/../config/dev.php';
-        require __DIR__.'/../src/controllers.php';
         $app['session.test'] = true;
 
-        return $this->app = $app;
+        return;
     }
 }

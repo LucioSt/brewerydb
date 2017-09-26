@@ -7,6 +7,9 @@
  *
  * @param atual_page
  * @param beer_from_brewery_id
+ *
+ * @author Lucio Stocco
+ *
  */
 
 function updateDataSearch(atual_page = 1, beer_from_brewery_id = null)

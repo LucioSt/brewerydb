@@ -1,4 +1,15 @@
 <?php
+/**
+ * Created by PhpStorm.
+ * User: lucio
+ * Date: 25/09/17
+ * Time: 13:12
+ *
+ * Controller Provider
+ *
+ * @author Lucio Stocco
+ *
+ */
 
 namespace Brewerydb;
 
@@ -6,10 +17,15 @@ use Silex\Api\ControllerProviderInterface;
 use Silex\Application;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Csrf\CsrfToken;
 use Silex\CsrfTokenServiceProvider;
 use Brewerydb\Pintlabs;
 
+
+/**
+ * Class ControllerProvider
+ * @package Brewerydb
+ *
+ */
 
 class ControllerProvider implements ControllerProviderInterface
 {
