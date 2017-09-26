@@ -75,7 +75,7 @@ class ControllerProvider implements ControllerProviderInterface
         $csrf_token = $app['csrf.token_manager']->getToken('token_id');
 
         // Require random beer
-        $random_beer_data = $this->requireRandomBeer();
+        $random_beer_data = $this->requireRandomBeer($app);
 
         return $app['twig']->render('index.html.twig', [
             'csrf_token'  => $csrf_token,
@@ -134,7 +134,7 @@ class ControllerProvider implements ControllerProviderInterface
             }
 
             // Request Brewery API
-            $results = $this->requestBreweryDbAPI($search, $search_text, $param);
+            $results = $this->requestBreweryDbAPI($app, $search, $search_text, $param);
 
             $body = $this->prepareBodyresponse($results);
 
@@ -172,7 +172,7 @@ class ControllerProvider implements ControllerProviderInterface
      * @return array
      */
 
-    private function requireRandomBeer()
+    private function requireRandomBeer(Application $app)
     {
         // Prepare $params requested in BreweryDb API
         $param =  $this->setParameter($page = 1, $randomBrewery = true, $searchBeersByBreweryId = null);
@@ -183,7 +183,7 @@ class ControllerProvider implements ControllerProviderInterface
             if ( isset($results) ) { unset($results); }
 
             // Request Brewery API
-            $results = $this->requestBreweryDbAPI($search_type = 'beers', $search_text = '', $param);
+            $results = $this->requestBreweryDbAPI($app, $search_type = 'beers', $search_text = '', $param);
 
             // Get 20 random beer and pick up the first record that has all the fields name, description and image
 
@@ -249,7 +249,7 @@ class ControllerProvider implements ControllerProviderInterface
         $search = 'brewery/' . $brewery_id . '/beers/';
 
         // Request Brewery API
-        $results = $this->requestBreweryDbAPI($search, $search_text = '', $param);
+        $results = $this->requestBreweryDbAPI($app, $search, $search_text = '', $param);
 
         $body = $this->prepareBodyresponse($results);
 
@@ -302,10 +302,10 @@ class ControllerProvider implements ControllerProviderInterface
      * @return array
      */
 
-    private function requestBreweryDbAPI($search_type, $search_text = '', $param)
+    private function requestBreweryDbAPI(Application $app, $search_type, $search_text = '', $param)
     {
 
-        $breweryService = new Pintlabs\Pintlabs_Service_Brewerydb('5cdb0593177b100ad0f5178d5d0cc942');
+        $breweryService = new Pintlabs\Pintlabs_Service_Brewerydb($app['brewery-api-token']);
 
         // If search is empty does search on entire base
         if (!empty($search_text)) {
