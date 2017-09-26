@@ -7,7 +7,7 @@
  *  Get Page Data
  */
 
-function updateDataSearch(atual_page = 1)
+function updateDataSearch(atual_page = 1, beer_from_brewery_id = null)
 {
 
     var data_all     = {};
@@ -36,9 +36,9 @@ function updateDataSearch(atual_page = 1)
         insertResultPage(data_all);                                                 // Updating listing data
         insertPagination(data.currentPage, data.numberOfPages, data.totalResults);  // Updating pagination
 
-    }).fail(function() {
+    }).fail(function(request) {
 
-        erroMessage("Error!", "error on loading API");
+        erroMessage("Error: " +  request.responseText);
 
     })
 

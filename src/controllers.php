@@ -30,6 +30,9 @@ class ControllerProvider implements ControllerProviderInterface
             ->post('/search', [$this, 'search'])
             ->bind('search');
 
+
+
+
         return $controllers;
     }
 
@@ -40,20 +43,76 @@ class ControllerProvider implements ControllerProviderInterface
         // Generate CSRF Token
         $csrf_token = $app['csrf.token_manager']->getToken('token_id');
 
-
-
-        // CHAMAR RANDOM GENERATE
-
-
-
-
-
+        // Get random beer
+        $random_beer_data = $this->requireRandomBeer();
 
         return $app['twig']->render('index.html.twig', [
-            'csrf_token' => $csrf_token,
+            'csrf_token'  => $csrf_token,
+            'brewery_id'  => $random_beer_data['brewery_id'],
+            'beer_name'   => $random_beer_data['beer_name'],
+            'beer_img'    => $random_beer_data['beer_img'],
+            'beer_description' => $random_beer_data['description']
         ]);
 
     }
+
+
+    /**
+     * @return array
+     */
+
+    private function requireRandomBeer()
+    {
+        // Prepare $params requested in BreweryDb API
+        $param =  $this->setParameter($page = 1, $randomBrewery = true, $searchBeersByBreweryId = null);
+
+        // Try get a random beer until have name, image and description
+        do {
+
+            if ( isset($results) ) { unset($results); }
+
+            // Request Brewery API
+            $results = $this->requestBreweryDbAPI($search_type = 'beers', $search_text = '', $param);
+
+            // Get 20 random beer and pick up the first record that has all the fields name, description and image
+
+            foreach ($results['data'] as $result)
+            {
+
+                $brewery_id  = $result['breweries'][0]['id'];
+                $beer_name   = (isset($result['name']))            ? $result['name']           : '';
+                $beer_img    = (isset($result['labels']['icon'] )) ? $result['labels']['icon'] : '';
+                $description = (isset($result['description']))     ? $result['description']    : '';
+
+                if ( (!empty($beer_name))   and
+                     (!empty($beer_img))    and
+                     (!empty($description)) and
+                     (!empty($brewery_id)) ) {
+                        break;
+                    }
+            }
+
+            // If needed, require new 20 random to test if you have the required fields
+
+        } while ( ( empty($beer_name) ) or
+                  ( empty($beer_img) )  or
+                  ( empty($description) or
+                      empty($brewery_id) )
+                );
+
+        $random_beer_data = array();
+        $random_beer_data['brewery_id']  = $brewery_id;
+        $random_beer_data['beer_name']   = $beer_name;
+        $random_beer_data['beer_img']    = $beer_img;
+        $random_beer_data['description'] = $description;
+
+        //  brewery/qa1QZU/beers/
+
+        return $random_beer_data;
+
+    }
+
+
 
     /**
      * @param Application $app
@@ -81,8 +140,18 @@ class ControllerProvider implements ControllerProviderInterface
         // Text search validation
         if (Validation::text_validation($search_text)) {
 
+            // Prepare $params requested in BreweryDb API
+            $param =  $this->setParameter($page, $randomBrewery = false, $searchBeersByBreweryId = null);
+
+            // Select search type Radio botton value
+            if ($search_type == 'option1'){
+                $search = 'beers';
+            } else {
+                $search = 'breweries';
+            }
+
             // Request Brewery API
-            $results = $this->requestBreweryDbAPI($search_type, $search_text, $page);
+            $results = $this->requestBreweryDbAPI($search, $search_text, $param);
 
             $body = $this->prepareBodyresponse($results);
 
@@ -114,17 +183,40 @@ class ControllerProvider implements ControllerProviderInterface
 
     }
 
+
     /**
-     * @param $search_type
+     * @param $page
+     * @param null $randomBrewery
+     * @param null $searchBeersByBreweryId
      * @return array
      */
 
-    public function requestBreweryDbAPI($search_type, $search_text, $page)
+    private function setParameter($page = 1, $randomBrewery = false, $searchBeersByBreweryId = null)
+    {
+        $param         = array();
+        $param['p']    = $page;    // Set page to search
+
+        if ($randomBrewery) {
+            $param['order']         = 'random';    // Set to random
+            $param['randomCount']   = 20;          // Set to return 20 random bear to test which one has all required fields
+            $param['withBreweries'] = 'Y';         // Get Brewery information
+        }
+
+        return $param;
+
+    }
+
+    /**
+     * @param $search_type
+     * @param $search_text
+     * @param $param
+     * @return array
+     */
+
+    private function requestBreweryDbAPI($search_type, $search_text = '', $param)
     {
 
-        $breweryService = new Pintlabs\Pintlabs_Service_Brewerydb('088f6bdfeec1fb150ca23a68be733e2c');
-        $param          = array();
-        $param['p']     = $page;    // Set page to search
+        $breweryService = new Pintlabs\Pintlabs_Service_Brewerydb('5cdb0593177b100ad0f5178d5d0cc942');
 
         // If search is empty does search on entire base
         if (!empty($search_text)) {
@@ -132,19 +224,13 @@ class ControllerProvider implements ControllerProviderInterface
 
         }
 
-        if ($search_type == 'option1'){
-            $search = 'beers';
-
-            // If search by beear Set abv parameter for search between from 0% to 100% of alcohol by volume of the beer
+        if ($search_type == 'beers'){
+           // If search by beear Set abv parameter for search between from 0% to 100% of alcohol by volume of the beer
             $param['abv']  = '0,100';
-
-        } else
-        {
-            $search = 'breweries';
         }
 
         try {
-            $results = $breweryService->request($search, $param, 'GET');
+            $results = $breweryService->request($search_type, $param, 'GET');
 
         } catch (Exception $e) {
             $results = array('error' => $e->getMessage());
@@ -160,7 +246,7 @@ class ControllerProvider implements ControllerProviderInterface
      * @return array
      */
 
-    public function prepareBodyresponse($results)
+    private function prepareBodyresponse($results)
     {
         $body = array();
 
@@ -172,15 +258,12 @@ class ControllerProvider implements ControllerProviderInterface
 
                     // test if there is image
                     if (!empty($result['labels']['medium'])) {
-
                         $img = $result['labels']['medium'];
 
                     } elseif (!empty($result['images']['large'])) {
-
                         $img = $result['images']['icon'];
 
                     } else {
-
                         $img = 'http://placehold.it/48x48/FFFFFF/AAAAAA.png&text=None'; // None image
 
                     }

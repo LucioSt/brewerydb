@@ -6,12 +6,37 @@
     <!-- Main jumbotron for a primary marketing message or call to action -->
     <div class="jumbotron">
         <div class="container">
-            <h2 class="display-6">BreweryDB Search</h2>
+
+            <!--  Random beer  -->
+
+            <div class="row" style="border: 1px solid gray; padding:5px;">
+                <div class="col-md-12">
+                    <div class="row no-gutters">
+                        <div class="col-6 col-md-1" style="margin-right:15px;">
+                            <img class="thumbnail" style="width:64px; height:64px;" width="64" height="64" src=" {{beer_img}} ">
+                        </div>
+
+                        <div class="col-12 col-sm-6 col-md-10">
+                            <h5> {{beer_name}} </h5>
+                            <p style=" font-size: 14px;"> {{ beer_description|replace({"\n": "<br>"})|raw }}  </p>
+
+                            <button type="button" class="btn btn-primary btn-sm" onclick="location.reload();">Another Beer</button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="updateDataSearch(1, {{brewery_id}} )">More From This Brewery</button>
+
+                         </div>
+
+                    </div>
+                    </div>
+                </div>
+            <br>
 
 
-            <!--  <h7>Search by beer name</h7>  -->
+            <!--  Search form  -->
 
-             <div class="row">
+
+            <h3 class="display-6">BreweryDB Search</h3>
+
+            <div class="row">
                 <div class="col-md-12">
                     <div class="row no-gutters">
                         <div class="col-12 col-sm-6 col-md-5" style="margin-right:15px;">
