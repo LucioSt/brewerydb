@@ -26,7 +26,9 @@
         "symfony/security-csrf": "^3.3"
     },
     "autoload": {
-        "psr-0": { "": "src/" }
+        "psr-4": {
+            "Brewerydb\\": "/src"
+        }
     },
     "extra": {
         "branch-alias": {

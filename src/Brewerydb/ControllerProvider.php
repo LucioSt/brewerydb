@@ -16,6 +16,13 @@ class ControllerProvider implements ControllerProviderInterface
 
     private $app;
 
+    /**
+     * Routes
+     *
+     * @param Application $app
+     * @return mixed
+     */
+
     public function connect(Application $app)
     {
         $app->error([$this, 'error']);
@@ -30,12 +37,20 @@ class ControllerProvider implements ControllerProviderInterface
             ->post('/search', [$this, 'search'])
             ->bind('search');
 
-
-
+        $controllers
+            ->post('/beersbybrewery/{brewery_id}', [$this, 'beersByBrewery'])
+            ->bind('beersByBrewery');
 
         return $controllers;
     }
 
+
+    /**
+     * Homepage Controller
+     *
+     * @param Application $app
+     * @return mixed
+     */
 
     public function homepage(Application $app)
     {
@@ -43,7 +58,7 @@ class ControllerProvider implements ControllerProviderInterface
         // Generate CSRF Token
         $csrf_token = $app['csrf.token_manager']->getToken('token_id');
 
-        // Get random beer
+        // Require random beer
         $random_beer_data = $this->requireRandomBeer();
 
         return $app['twig']->render('index.html.twig', [
@@ -58,6 +73,86 @@ class ControllerProvider implements ControllerProviderInterface
 
 
     /**
+     * Search Controller
+     *
+     * @param Application $app
+     * @param Request $request
+     * @return mixed
+     */
+
+    public function search(Application $app, Request $request)
+    {
+
+        // Get Json sent by Ajax
+        $search_text = $request->request->get('data')['search_text'];
+        $search_type = $request->request->get('data')['search_type'];
+        $_csrf_token = (isset($request->request->get('data')['_csrf_token'])) ? $request->request->get('data')['_csrf_token']  : '';
+        $page        = $request->query->get('p');
+
+        $body = array();
+
+        // Check csrf Token
+        if (!Validation::checkToken($app, $_csrf_token, $body)) {
+            $data['data'] = $body;  // Mounts the API return data
+            return $app->json($data, 200, array('Content-Type' => 'application/json'));
+        }
+
+        $body = array();
+        $data['numberOfPages'] = 0;
+        $data['totalResults']  = 0;
+        $data['currentPage']   = 1;
+
+        // Text search validation
+        if (Validation::textValidation($search_text)) {
+
+            // Prepare $params requested in BreweryDb API
+            $param =  $this->setParameter($page, $randomBrewery = false, $searchBeersByBreweryId = null);
+
+            // Select search type Radio botton value
+            if ($search_type == 'option1'){
+                $search = 'beers';
+
+            } else {
+                $search = 'breweries';
+
+            }
+
+            // Request Brewery API
+            $results = $this->requestBreweryDbAPI($search, $search_text, $param);
+
+            $body = $this->prepareBodyresponse($results);
+
+            // Only loads numberOfPages, totalResults, currentPage if any record have been found
+            if (isset($results['data'])) {
+                $data['numberOfPages'] = $results['numberOfPages'];
+                $data['totalResults']  = $results['totalResults'];
+                $data['currentPage']   = $results['currentPage'];
+            }
+
+        } else {
+            $body[] = [
+                'name' => 'The searched word is not accepted.. It should only contain letters, numbers, hyphens and spaces.',
+                'description' => '',
+                'image' => ''
+            ];
+
+        }
+
+        $data['data'] = $body;  // Mounts the API return data
+
+       if ($body) {
+            return $app->json($data, 200, array('Content-Type' => 'application/json'));
+
+        } else {
+            return new Response('Error in BreweryDB API return data', 200);
+
+        }
+
+    }
+
+    /**
+     * requests randomly beer from BreweryDbAPI API
+     *
      * @return array
      */
 
@@ -85,20 +180,20 @@ class ControllerProvider implements ControllerProviderInterface
                 $description = (isset($result['description']))     ? $result['description']    : '';
 
                 if ( (!empty($beer_name))   and
-                     (!empty($beer_img))    and
-                     (!empty($description)) and
-                     (!empty($brewery_id)) ) {
-                        break;
-                    }
+                    (!empty($beer_img))    and
+                    (!empty($description)) and
+                    (!empty($brewery_id)) ) {
+                    break;
+                }
             }
 
             // If needed, require new 20 random to test if you have the required fields
 
         } while ( ( empty($beer_name) ) or
-                  ( empty($beer_img) )  or
-                  ( empty($description) or
-                      empty($brewery_id) )
-                );
+        ( empty($beer_img) )  or
+        ( empty($description) or
+            empty($brewery_id) )
+        );
 
         $random_beer_data = array();
         $random_beer_data['brewery_id']  = $brewery_id;
@@ -112,72 +207,50 @@ class ControllerProvider implements ControllerProviderInterface
 
     }
 
-
-
     /**
+     * Search for beers from a brewery
+     *
      * @param Application $app
      * @param Request $request
-     * @return mixed
+     * @param $brewery_id
+     * @return \Symfony\Component\HttpFoundation\JsonResponse|Response
      */
 
-    public function search(Application $app, Request $request)
+    public function beersByBrewery(Application $app, Request $request, $brewery_id )
     {
-
-        // Get Json sent by Ajax
-        $search_text = $request->request->get('data')['search_text'];
-        $_csrf_token = $request->request->get('data')['_csrf_token'];
-        $search_type = $request->request->get('data')['search_type'];
-
-        $page        = $request->query->get('p');
-
-        $teste = $app['csrf.token_manager']->isTokenValid(new CsrfToken('token_id', $_csrf_token));  // Check csrf Token
 
         $body = array();
         $data['numberOfPages'] = 0;
         $data['totalResults']  = 0;
         $data['currentPage']   = 1;
 
-        // Text search validation
-        if (Validation::text_validation($search_text)) {
+        $page = $request->query->get('p');
 
-            // Prepare $params requested in BreweryDb API
-            $param =  $this->setParameter($page, $randomBrewery = false, $searchBeersByBreweryId = null);
+        // Prepare $params requested in BreweryDb API
+        $param =  $this->setParameter($page, $randomBrewery = false, $searchBeersByBreweryId = $brewery_id);
 
-            // Select search type Radio botton value
-            if ($search_type == 'option1'){
-                $search = 'beers';
-            } else {
-                $search = 'breweries';
-            }
+        // Select search beers by brewery
+        $search = 'brewery/' . $brewery_id . '/beers/';
 
-            // Request Brewery API
-            $results = $this->requestBreweryDbAPI($search, $search_text, $param);
+        // Request Brewery API
+        $results = $this->requestBreweryDbAPI($search, $search_text = '', $param);
 
-            $body = $this->prepareBodyresponse($results);
+        $body = $this->prepareBodyresponse($results);
 
-            // Only loads numberOfPages, totalResults, currentPage if any record have been found
-            if (isset($results['data'])) {
-                $data['numberOfPages'] = $results['numberOfPages'];
-                $data['totalResults']  = $results['totalResults'];
-                $data['currentPage']   = $results['currentPage'];
-            }
-
-        } else {
-            $body[] = [
-                'name' => 'The searched word is not accepted.. It should only contain letters, numbers, hyphens and spaces.',
-                'description' => '',
-                'image' => ''
-            ];
-
+        // Only loads numberOfPages, totalResults, currentPage if any record have been found
+        if (isset($results['data'])) {
+            $data['numberOfPages'] = 1;
+            $data['totalResults']  = count($body);
+            $data['currentPage']   = $page;
         }
 
-        $data['data'] = $body;
+        $data['data'] = $body;  // Mounts the API return data
 
-       if ($body) {
+        if ($body) {
             return $app->json($data, 200, array('Content-Type' => 'application/json'));
 
         } else {
-            return new Response('failure', 200);
+            return new Response('Error in BreweryDB API return data', 200);
 
         }
 

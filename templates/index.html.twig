@@ -21,7 +21,7 @@
                             <p style=" font-size: 14px;"> {{ beer_description|replace({"\n": "<br>"})|raw }}  </p>
 
                             <button type="button" class="btn btn-primary btn-sm" onclick="location.reload();">Another Beer</button>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="updateDataSearch(1, {{brewery_id}} )">More From This Brewery</button>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="updateDataSearch(1, '{{brewery_id}}' )">More From This Brewery</button>
 
                          </div>
 
@@ -34,7 +34,7 @@
             <!--  Search form  -->
 
 
-            <h3 class="display-6">BreweryDB Search</h3>
+            <h5 class="display-6">BreweryDB Search</h5>
 
             <div class="row">
                 <div class="col-md-12">

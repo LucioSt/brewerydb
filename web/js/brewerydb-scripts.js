@@ -2,9 +2,11 @@
  * Created by lucio on 25/09/17.
  */
 
-
 /**
- *  Get Page Data
+ * Get Page Data from Silex\Brewerydb API
+ *
+ * @param atual_page
+ * @param beer_from_brewery_id
  */
 
 function updateDataSearch(atual_page = 1, beer_from_brewery_id = null)
@@ -15,6 +17,7 @@ function updateDataSearch(atual_page = 1, beer_from_brewery_id = null)
     var _csrf_token  = $('#token').val();
     var url_Backend  = "http://" + window.location.host;
     var search_type  = $("input[type='radio'].form-check-input:checked").val();
+    var page_require = "";
 
     var serializedData = { data : {
         search_text: search,
@@ -23,12 +26,20 @@ function updateDataSearch(atual_page = 1, beer_from_brewery_id = null)
       }
     }
 
+    if (beer_from_brewery_id == null) {
+        page_require = '/search?p=' + atual_page;
+
+    } else {
+        page_require = '/beersbybrewery/' + beer_from_brewery_id + '?p=' + atual_page;
+
+    }
+
     $.ajax({
 
         type:'POST',
         data: serializedData,
         dataType: 'json',
-        url: url_Backend + '/search?p=' + atual_page
+        url: url_Backend + page_require
 
     }).done(function(data){
 
@@ -51,6 +62,7 @@ function updateDataSearch(atual_page = 1, beer_from_brewery_id = null)
 
 function insertResultPage(data_row)
 {
+
     var	rows = '';
     var description_formated = '';
 
@@ -61,6 +73,7 @@ function insertResultPage(data_row)
         rows = rows + '    <h6 style=" font-size: 12px;"> Page '+ data_row.currentPage +' of '+ data_row.numberOfPages +' </h6>';
         rows = rows + '</div>';
         rows = rows + '<hr>';
+
     }
 
     // **********
@@ -95,12 +108,16 @@ function insertResultPage(data_row)
 
 
 /**
+ * Insert Pagination
  *
- * Pagination
- *
+ * @param currentPage
+ * @param numberOfPages
+ * @param totalResults
  */
+
 function insertPagination(currentPage, numberOfPages, totalResults)
 {
+
     var	rows = '';
     var previous_page = currentPage - 1;
     var max_pagination = 0;
@@ -109,6 +126,7 @@ function insertPagination(currentPage, numberOfPages, totalResults)
 
     if (currentPage == 1){
         preview_disable = 'disabled';
+
     }
 
     if (numberOfPages > 1) {
@@ -116,23 +134,30 @@ function insertPagination(currentPage, numberOfPages, totalResults)
         rows = rows + '<div class="row">';
         rows = rows + '    <nav aria-label="Page navigation example">';
         rows = rows + '        <ul class="pagination">';
-        rows = rows + '            <li class="page-item '+ preview_disable +'"><a class="page-link" href="#" onclick="updateDataSearch( '+ previous_page +' )">Previous</a></li>';
+        rows = rows + '            <li class="page-item '+ preview_disable +'"><a class="page-link" href="#" ' +
+                                    'onclick="updateDataSearch( '+ previous_page +' )">Previous</a></li>';
         rows = rows + '            <li class="page-item active"><a class="page-link" href="#">'+ currentPage +'</a></li>';
 
         if ((currentPage + 10) >= numberOfPages){
             max_pagination = numberOfPages;
+
         } else {
             print_last_page = true;
             max_pagination = currentPage + 10;
+
         }
 
         for (i = (currentPage + 1); i < max_pagination; i++) {
-            rows = rows + '           <li class="page-item"><a class="page-link" href="#" onclick="updateDataSearch('+ i +')">'+ i +'</a></li>';
+
+            rows = rows + '           <li class="page-item"><a class="page-link" href="#" ' +
+                                        'onclick="updateDataSearch('+ i +')">'+ i +'</a></li>';
+
         }
 
         if (print_last_page) {
             rows = rows + '            <li class="page-item disabled"><a class="page-link" href="#">...</a></li>';
-            rows = rows + '            <li class="page-item"><a class="page-link" href="#" onclick="updateDataSearch('+ numberOfPages +')">'+ numberOfPages +'</a></li>';
+            rows = rows + '            <li class="page-item"><a class="page-link" href="#" ' +
+                                        'onclick="updateDataSearch('+ numberOfPages +')">'+ numberOfPages +'</a></li>';
         }
 
         rows = rows + '    </ul>';
@@ -151,7 +176,10 @@ function insertPagination(currentPage, numberOfPages, totalResults)
  * Error Message
  * @param msg
  */
+
 function erroMessage(msg) {
+
     $("#listing").empty();
     $("#listing").append(msg);
+
 }
