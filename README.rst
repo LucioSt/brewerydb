@@ -29,5 +29,5 @@ Simple application that uses the Brewerydb API services to search Beers and Brew
 
     $ php -S localhost:8080 -t web web/index.php
 
-* Then, browse to http://localhost:8888/index_dev.php/
+* Then, browse to http://localhost:8080
 
