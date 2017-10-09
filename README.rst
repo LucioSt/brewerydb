@@ -8,6 +8,7 @@ Simple application that uses the Brewerydb API services to search Beers and Brew
 - PHP 7
 - Pimple  - Dependency Injection Container
 - Pintlabs Brewerydb API
+- REST APIs
 - Twig
 - Ajax
 - JQuery
