@@ -6,12 +6,12 @@ Simple application that uses the Brewerydb API services to search Beers and Brew
 ### Used:
 
 - PHP 7
-- Silex 2 - Micro-framework based on the Symfony 
 - Pimple  - Dependency Injection Container
 - Pintlabs Brewerydb API
 - Twig
 - Ajax
 - JQuery
+- Memcached
 
 ### Installation & Usage
 
@@ -33,7 +33,6 @@ Simple application that uses the Brewerydb API services to search Beers and Brew
 Improvements to the next version:
 -----------------------------------
 
-* Redis Cache
 * Use React on the front-end
 * Autocomplete in search
 

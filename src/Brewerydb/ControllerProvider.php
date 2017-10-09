@@ -133,10 +133,36 @@ class ControllerProvider implements ControllerProviderInterface
 
             }
 
-            // Request Brewery API
-            $results = $this->requestBreweryDbAPI($app, $search, $search_text, $param);
+            // Create the Memcache key join with the search word + page number
+            $memcache_key = $search_text . "_" . $page . "_key";
 
-            $body = $this->prepareBodyresponse($results);
+            // If content is cached
+            if ($app['memcache']->get($memcache_key)){
+
+                // Get Memcache key
+                $cache_content = $app['memcache']->get($memcache_key);
+
+                $body = $cache_content['body'];
+                $data['numberOfPages'] = $cache_content['numberOfPages'];
+                $data['totalResults']  = $cache_content['totalResults'] ;
+                $data['currentPage']   = $cache_content['currentPage'];
+
+            } else {
+
+                // Request Brewery API
+                $results = $this->requestBreweryDbAPI($app, $search, $search_text, $param);
+
+                $body = $this->prepareBodyresponse($results);
+
+                $cache_content['body']          = $body;
+                $cache_content['numberOfPages'] = $results['numberOfPages'];
+                $cache_content['totalResults']  = $results['totalResults'];
+                $cache_content['currentPage']   = $results['currentPage'];
+
+                // Set Memcache key
+                $app['memcache']->set($memcache_key, $cache_content);
+
+            }
 
             // Only loads numberOfPages, totalResults, currentPage if any record have been found
             if (isset($results['data'])) {
